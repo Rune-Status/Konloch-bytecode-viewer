@@ -18,12 +18,13 @@
 
 package the.bytecode.club.bytecodeviewer.gui.components;
 
-import me.konloch.kontainer.io.DiskWriter;
+import com.konloch.disklib.DiskWriter;
 import the.bytecode.club.bytecodeviewer.resources.IconResources;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 
 import static the.bytecode.club.bytecodeviewer.Constants.TEMP_DIRECTORY;
 
@@ -120,9 +121,9 @@ public class JFrameConsole extends JFrame
     /**
      * Trims the console text to prevent killing the swing thread
      */
-    public String trimConsoleText(String s)
+    public String trimConsoleText(String text)
     {
-        int len = s.length();
+        int len = text.length();
 
         //TODO this should also be a setting eventually
         int max = 500_000;
@@ -136,20 +137,28 @@ public class JFrameConsole extends JFrame
             new Thread(() ->
             {
                 //save to disk
-                DiskWriter.replaceFile(tempFile.getAbsolutePath(), s, false);
+                try
+                {
+                    DiskWriter.write(tempFile.getAbsolutePath(), text);
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
             }, "Console Log Saving").start();
 
             //trim
             int skipped = len - max;
-            String trimmed = s.substring(0, max);
+            String trimmed = text.substring(0, max);
 
             if (!trimmed.startsWith("WARNING: Skipping"))
-                trimmed = ("WARNING: Skipping " + skipped + " chars, allowing " + max + "\n\r") + "Full log saved to: " + tempFile.getAbsolutePath() + "\n\r\n\r" + trimmed;
+                trimmed = ("WARNING: Skipping " + skipped + " chars, allowing " + max + "\n\r")
+                    + "Full log saved to: " + tempFile.getAbsolutePath() + "\n\r\n\r" + trimmed;
 
             return trimmed;
         }
 
-        return s;
+        return text;
     }
 
     private static final long serialVersionUID = -5056940543411437508L;

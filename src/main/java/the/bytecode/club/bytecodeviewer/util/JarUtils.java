@@ -18,7 +18,7 @@
 
 package the.bytecode.club.bytecodeviewer.util;
 
-import me.konloch.kontainer.io.DiskWriter;
+import com.konloch.disklib.DiskWriter;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FilenameUtils;
@@ -64,7 +64,8 @@ public class JarUtils
         ResourceContainer container = new ResourceContainer(jarFile);
         Map<String, byte[]> files = new LinkedHashMap<>();
 
-        try (FileInputStream fis = new FileInputStream(jarFile); ZipInputStream jis = new ZipInputStream(fis))
+        try (FileInputStream fis = new FileInputStream(jarFile);
+             ZipInputStream jis = new ZipInputStream(fis))
         {
             ZipEntry entry;
             while ((entry = jis.getNextEntry()) != null)
@@ -184,7 +185,8 @@ public class JarUtils
     public static List<ClassNode> loadClasses(File jarFile) throws IOException
     {
         List<ClassNode> classes = new ArrayList<>();
-        try (FileInputStream fis = new FileInputStream(jarFile); ZipInputStream jis = new ZipInputStream(fis))
+        try (FileInputStream fis = new FileInputStream(jarFile);
+             ZipInputStream jis = new ZipInputStream(fis))
         {
             ZipEntry entry;
             while ((entry = jis.getNextEntry()) != null)
@@ -342,9 +344,11 @@ public class JarUtils
         //TODO figure out why is this synchronized and if it's actually needed (probably not)
         synchronized (LOCK)
         {
-            try (FileOutputStream fos = new FileOutputStream(path); JarOutputStream out = new JarOutputStream(fos))
+            try (FileOutputStream fos = new FileOutputStream(path);
+                 JarOutputStream out = new JarOutputStream(fos))
             {
-                List<String> noDupe = new ArrayList<>();
+                HashSet<String> fileCollisionPrevention = new HashSet<>();
+
                 for (ClassNode cn : nodeList)
                 {
                     ClassWriter cw = new ClassWriter(0);
@@ -352,15 +356,13 @@ public class JarUtils
 
                     String name = cn.name + ".class";
 
-                    if (!noDupe.contains(name))
+                    if (fileCollisionPrevention.add(name))
                     {
-                        noDupe.add(name);
                         out.putNextEntry(new ZipEntry(name));
                         out.write(cw.toByteArray());
                         out.closeEntry();
                     }
                 }
-                noDupe.clear();
             }
             catch (IOException e)
             {
@@ -388,7 +390,7 @@ public class JarUtils
                 File f = new File(name);
                 f.mkdirs();
 
-                DiskWriter.replaceFileBytes(name, cw.toByteArray(), false);
+                DiskWriter.write(name, cw.toByteArray());
             }
         }
         catch (Exception e)
@@ -403,11 +405,12 @@ public class JarUtils
      * @param nodeList The loaded ClassNodes
      * @param path     the exact jar output path
      */
-    public static void saveAsJar(List<ClassNode> nodeList, String path)
+    public static void saveAsJar(List<ClassNode> nodeList, String path) throws IOException
     {
-        try (FileOutputStream fos = new FileOutputStream(path); JarOutputStream out = new JarOutputStream(fos))
+        try (FileOutputStream fos = new FileOutputStream(path);
+             JarOutputStream out = new JarOutputStream(fos))
         {
-            List<String> noDupe = new ArrayList<>();
+            List<String> fileCollisionPrevention  = new ArrayList<>();
             for (ClassNode cn : nodeList)
             {
                 ClassWriter cw = new ClassWriter(0);
@@ -415,9 +418,9 @@ public class JarUtils
 
                 String name = cn.name + ".class";
 
-                if (!noDupe.contains(name))
+                if (!fileCollisionPrevention .contains(name))
                 {
-                    noDupe.add(name);
+                    fileCollisionPrevention .add(name);
                     out.putNextEntry(new ZipEntry(name));
                     out.write(cw.toByteArray());
                     out.closeEntry();
@@ -429,11 +432,12 @@ public class JarUtils
                 for (Entry<String, byte[]> entry : container.resourceFiles.entrySet())
                 {
                     String filename = entry.getKey();
+
                     if (!filename.startsWith("META-INF"))
                     {
-                        if (!noDupe.contains(filename))
+                        if (!fileCollisionPrevention .contains(filename))
                         {
-                            noDupe.add(filename);
+                            fileCollisionPrevention .add(filename);
                             out.putNextEntry(new ZipEntry(filename));
                             out.write(entry.getValue());
                             out.closeEntry();
@@ -442,11 +446,7 @@ public class JarUtils
                 }
             }
 
-            noDupe.clear();
-        }
-        catch (IOException e)
-        {
-            BytecodeViewer.handleException(e);
+            fileCollisionPrevention .clear();
         }
     }
 }

@@ -57,12 +57,16 @@ public class DecompilerViewComponent
 
     private void createMenu()
     {
-        if (type == JAVA || type == JAVA_NON_EDITABLE || type == JAVA_AND_BYTECODE)
+        if (type == JAVA || type == JAVA_NON_EDITABLE
+            || type == JAVA_AND_BYTECODE || type == JAVA_AND_BYTECODE_NON_EDITABLE)
             menu.add(java);
-        if (type == BYTECODE || type == JAVA_AND_BYTECODE || type == BYTECODE_NON_EDITABLE)
+
+        if (type == BYTECODE || type == BYTECODE_NON_EDITABLE
+            || type == JAVA_AND_BYTECODE  || type == JAVA_AND_BYTECODE_NON_EDITABLE)
             menu.add(bytecode);
 
-        if (type != JAVA_NON_EDITABLE && type != BYTECODE_NON_EDITABLE)
+        if (type != JAVA_NON_EDITABLE && type != BYTECODE_NON_EDITABLE
+            && type != JAVA_AND_BYTECODE_NON_EDITABLE)
         {
             menu.add(new JSeparator());
             menu.add(editable);
@@ -73,10 +77,8 @@ public class DecompilerViewComponent
 
     public void addToGroup(ButtonGroup group)
     {
-        if (type == JAVA || type == JAVA_NON_EDITABLE || type == JAVA_AND_BYTECODE)
-            group.add(java);
-        if (type == BYTECODE || type == JAVA_AND_BYTECODE || type == BYTECODE_NON_EDITABLE)
-            group.add(bytecode);
+        group.add(java);
+        group.add(bytecode);
     }
 
     public JMenu getMenu()
@@ -111,6 +113,11 @@ public class DecompilerViewComponent
 
     public enum DecompilerComponentType
     {
-        JAVA, JAVA_NON_EDITABLE, BYTECODE, BYTECODE_NON_EDITABLE, JAVA_AND_BYTECODE
+        JAVA,
+        JAVA_NON_EDITABLE,
+        BYTECODE,
+        BYTECODE_NON_EDITABLE,
+        JAVA_AND_BYTECODE,
+        JAVA_AND_BYTECODE_NON_EDITABLE;
     }
 }

@@ -28,6 +28,7 @@ import the.bytecode.club.bytecodeviewer.gui.resourceviewer.BytecodeViewPanel;
 import the.bytecode.club.bytecodeviewer.resources.Resource;
 import the.bytecode.club.bytecodeviewer.resources.ResourceContainer;
 import the.bytecode.club.bytecodeviewer.util.MethodParser;
+import the.bytecode.club.bytecodeviewer.util.SleepUtil;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -102,17 +103,10 @@ public class ClassViewer extends ResourceViewer
         {
             BytecodeViewer.updateBusyStatus(true);
 
+            //wait until it's not dumping
             while (Configuration.currentlyDumping)
             {
-                //wait until it's not dumping
-                try
-                {
-                    Thread.sleep(100);
-                }
-                catch (InterruptedException e)
-                {
-                    e.printStackTrace();
-                }
+                SleepUtil.sleep(100);
             }
 
             BytecodeViewer.updateBusyStatus(false);
@@ -136,7 +130,8 @@ public class ClassViewer extends ResourceViewer
 
             Configuration.warnForEditing = true;
 
-            if (!BytecodeViewer.viewer.autoCompileOnRefresh.isSelected() && !BytecodeViewer.viewer.compileOnSave.isSelected())
+            if (!BytecodeViewer.viewer.autoCompileOnRefresh.isSelected()
+                && !BytecodeViewer.viewer.compileOnSave.isSelected())
             {
                 BytecodeViewer.showMessage("Make sure to compile (File>Compile or Ctrl + T) whenever you want to "
                     + "test or export your changes.\nYou can set compile automatically on refresh or on save "
@@ -178,8 +173,10 @@ public class ClassViewer extends ResourceViewer
         {
             case 0:
                 return bytecodeViewPanel1;
+
             case 1:
                 return bytecodeViewPanel2;
+
             case 2:
                 return bytecodeViewPanel3;
         }
@@ -285,8 +282,8 @@ public class ClassViewer extends ResourceViewer
     public void resetDivider()
     {
 		/*
-		This may be a bit overkill on how we handle setting/changing selected panels, but we now handle if only one panel is
-		selected, to not show any split panes but just the panel text.
+		 * This may be a bit overkill on how we handle setting/changing selected panels, but we now handle if only one panel is
+		 * selected, to not show any split panes but just the panel text.
 		 */
 
         SwingUtilities.invokeLater(() ->
@@ -302,7 +299,9 @@ public class ClassViewer extends ResourceViewer
             setDividerLocation(sp, 0.5);
 
             /* If panel 1 and panel 2 are ticked but not panel 3 */
-            if (bytecodeViewPanel1.decompiler != Decompiler.NONE && bytecodeViewPanel2.decompiler != Decompiler.NONE && bytecodeViewPanel3.decompiler == Decompiler.NONE)
+            if (bytecodeViewPanel1.decompiler != Decompiler.NONE
+                && bytecodeViewPanel2.decompiler != Decompiler.NONE
+                && bytecodeViewPanel3.decompiler == Decompiler.NONE)
             {
                 this.sp.setLeftComponent(bytecodeViewPanel1);
                 this.sp.setRightComponent(bytecodeViewPanel2);
@@ -310,7 +309,9 @@ public class ClassViewer extends ResourceViewer
             }
 
             /* If panel 1 and panel 3 are ticked but not panel 2 */
-            else if (bytecodeViewPanel1.decompiler != Decompiler.NONE && bytecodeViewPanel2.decompiler == Decompiler.NONE && bytecodeViewPanel3.decompiler != Decompiler.NONE)
+            else if (bytecodeViewPanel1.decompiler != Decompiler.NONE
+                && bytecodeViewPanel2.decompiler == Decompiler.NONE
+                && bytecodeViewPanel3.decompiler != Decompiler.NONE)
             {
                 this.sp.setLeftComponent(bytecodeViewPanel1);
                 this.sp.setRightComponent(bytecodeViewPanel3);
@@ -318,7 +319,9 @@ public class ClassViewer extends ResourceViewer
             }
 
             /* If panel 2 and panel 3 are ticked but not panel 1 */
-            else if (bytecodeViewPanel1.decompiler == Decompiler.NONE && bytecodeViewPanel2.decompiler != Decompiler.NONE && bytecodeViewPanel3.decompiler != Decompiler.NONE)
+            else if (bytecodeViewPanel1.decompiler == Decompiler.NONE
+                && bytecodeViewPanel2.decompiler != Decompiler.NONE
+                && bytecodeViewPanel3.decompiler != Decompiler.NONE)
             {
                 this.sp.setLeftComponent(bytecodeViewPanel2);
                 this.sp.setRightComponent(bytecodeViewPanel3);
@@ -326,7 +329,9 @@ public class ClassViewer extends ResourceViewer
             }
 
             // If all panels are selected, create the second split pane
-            if (bytecodeViewPanel1.decompiler != Decompiler.NONE && bytecodeViewPanel2.decompiler != Decompiler.NONE && bytecodeViewPanel3.decompiler != Decompiler.NONE)
+            if (bytecodeViewPanel1.decompiler != Decompiler.NONE
+                && bytecodeViewPanel2.decompiler != Decompiler.NONE
+                && bytecodeViewPanel3.decompiler != Decompiler.NONE)
             {
                 this.sp.setLeftComponent(bytecodeViewPanel1);
                 this.sp.setRightComponent(bytecodeViewPanel2);
@@ -390,7 +395,8 @@ public class ClassViewer extends ResourceViewer
                 @Override
                 public void hierarchyChanged(HierarchyEvent e)
                 {
-                    if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && splitter.isShowing())
+                    if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0
+                        && splitter.isShowing())
                     {
                         splitter.removeHierarchyListener(this);
                         setDividerLocation(splitter, proportion);

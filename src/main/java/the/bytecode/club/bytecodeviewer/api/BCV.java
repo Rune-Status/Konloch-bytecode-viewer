@@ -18,13 +18,14 @@
 
 package the.bytecode.club.bytecodeviewer.api;
 
+import com.konloch.taskmanager.TaskManager;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import the.bytecode.club.bytecodeviewer.BytecodeViewer;
 import the.bytecode.club.bytecodeviewer.compilers.Compiler;
-import the.bytecode.club.bytecodeviewer.compilers.InternalCompiler;
+import the.bytecode.club.bytecodeviewer.compilers.AbstractCompiler;
 import the.bytecode.club.bytecodeviewer.decompilers.Decompiler;
-import the.bytecode.club.bytecodeviewer.decompilers.InternalDecompiler;
+import the.bytecode.club.bytecodeviewer.decompilers.AbstractDecompiler;
 import the.bytecode.club.bytecodeviewer.plugin.preinstalled.EZInjection;
 import the.bytecode.club.bytecodeviewer.util.DialogUtils;
 import the.bytecode.club.bytecodeviewer.util.JarUtils;
@@ -165,6 +166,16 @@ public class BCV
     }
 
     /**
+     * Returns the background Task Manager
+     *
+     * @return the global BCV background task manager
+     */
+    public static TaskManager getTaskManager()
+    {
+        return BytecodeViewer.getTaskManager();
+    }
+
+    /**
      * Used to start a plugin from file.
      *
      * @param plugin the file of the plugin
@@ -212,14 +223,10 @@ public class BCV
         catch (Exception e)
         {
             e.printStackTrace();
-            try
-            {
-                Thread.sleep(200);
-                Objects.requireNonNull(cn).accept(cw);
-            }
-            catch (InterruptedException ignored)
-            {
-            }
+
+            SleepUtil.sleep(200);
+
+            Objects.requireNonNull(cn).accept(cw);
         }
 
         return cw.toByteArray();
@@ -362,7 +369,7 @@ public class BCV
      *
      * @return The wrapped Krakatau Decompiler instance
      */
-    public static InternalDecompiler getKrakatauDecompiler()
+    public static AbstractDecompiler getKrakatauDecompiler()
     {
         return Decompiler.KRAKATAU_DECOMPILER.getDecompiler();
     }
@@ -372,7 +379,7 @@ public class BCV
      *
      * @return The wrapped Procyon Decompiler instance
      */
-    public static InternalDecompiler getProcyonDecompiler()
+    public static AbstractDecompiler getProcyonDecompiler()
     {
         return Decompiler.PROCYON_DECOMPILER.getDecompiler();
     }
@@ -382,7 +389,7 @@ public class BCV
      *
      * @return The wrapped CFR Decompiler instance
      */
-    public static InternalDecompiler getCFRDecompiler()
+    public static AbstractDecompiler getCFRDecompiler()
     {
         return Decompiler.CFR_DECOMPILER.getDecompiler();
     }
@@ -392,7 +399,7 @@ public class BCV
      *
      * @return The wrapped FernFlower Decompiler instance
      */
-    public static InternalDecompiler getFernFlowerDecompiler()
+    public static AbstractDecompiler getFernFlowerDecompiler()
     {
         return Decompiler.FERNFLOWER_DECOMPILER.getDecompiler();
     }
@@ -402,7 +409,7 @@ public class BCV
      *
      * @return The wrapped Krakatau Disassembler instance
      */
-    public static InternalDecompiler getKrakatauDisassembler()
+    public static AbstractDecompiler getKrakatauDisassembler()
     {
         return Decompiler.KRAKATAU_DISASSEMBLER.getDecompiler();
     }
@@ -412,7 +419,7 @@ public class BCV
      *
      * @return The wrapped JD-GUI Decompiler instance
      */
-    public static InternalDecompiler getDJGUIDecompiler()
+    public static AbstractDecompiler getDJGUIDecompiler()
     {
         return Decompiler.JD_DECOMPILER.getDecompiler();
     }
@@ -422,7 +429,7 @@ public class BCV
      *
      * @return The wrapped JADX Decompiler instance
      */
-    public static InternalDecompiler getJADXDecompiler()
+    public static AbstractDecompiler getJADXDecompiler()
     {
         return Decompiler.JADX_DECOMPILER.getDecompiler();
     }
@@ -432,7 +439,7 @@ public class BCV
      *
      * @return The wrapped Java Compiler instance
      */
-    public static InternalCompiler getJavaCompiler()
+    public static AbstractCompiler getJavaCompiler()
     {
         return Compiler.JAVA_COMPILER.getCompiler();
     }
@@ -442,7 +449,7 @@ public class BCV
      *
      * @return The wrapped Krakatau Assembler instance
      */
-    public static InternalCompiler getKrakatauCompiler()
+    public static AbstractCompiler getKrakatauCompiler()
     {
         return Compiler.KRAKATAU_ASSEMBLER.getCompiler();
     }
@@ -452,7 +459,7 @@ public class BCV
      *
      * @return The wrapped Smali Assembler instance
      */
-    public static InternalCompiler getSmaliCompiler()
+    public static AbstractCompiler getSmaliCompiler()
     {
         return Compiler.SMALI_ASSEMBLER.getCompiler();
     }

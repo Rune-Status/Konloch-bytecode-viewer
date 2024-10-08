@@ -21,54 +21,60 @@ package the.bytecode.club.bytecodeviewer.decompilers;
 import the.bytecode.club.bytecodeviewer.decompilers.impl.*;
 
 /**
- * All of the decompilers/disassemblers BCV uses
+ * All the decompilers/disassemblers BCV uses
  *
  * @author Konloch
  */
 public enum Decompiler
 {
-    //TODO WARNING: do not change the decompiler order, when adding a new decompiler just add it to the end
-    // enum ordinal is used for settings serialization instead of the enum name
-    NONE("None", "", null),
-    PROCYON_DECOMPILER("Procyon Decompiler", "proycon", new ProcyonDecompiler()),
-    CFR_DECOMPILER("CFR Decompiler", "cfr", new CFRDecompiler()),
-    FERNFLOWER_DECOMPILER("FernFlower Decompiler", "fernflower", new FernFlowerDecompiler()),
+    //TODO WARNING: do not change the decompiler order, when adding a new decompiler just add it to the end.
+    // Enum ordinal is used for settings serialization instead of the enum name.
 
-    BYTECODE_DISASSEMBLER("Bytecode Disassembler", "bcvbd", new BytecodeDisassembler()),
-    HEXCODE_VIEWER("Hexcode Viewer", "bcvhex", null),
+    NONE(null),
+    PROCYON_DECOMPILER(new ProcyonDecompiler()),                //java decompiler
+    CFR_DECOMPILER(new CFRDecompiler()),                        //java decompiler
+    FERNFLOWER_DECOMPILER(new FernFlowerDecompiler()),          //java decompiler
 
-    SMALI_DISASSEMBLER("Smali Disassembler", "smali", new SmaliDisassembler()),
-    KRAKATAU_DECOMPILER("Krakatau Decompiler", "krakatau", new KrakatauDecompiler()),
-    KRAKATAU_DISASSEMBLER("Krakatau Disassembler", "krakataud", new KrakatauDisassembler()),
-    JD_DECOMPILER("JD-GUI Decompiler", "jdgui", new JDGUIDecompiler()),
-    JADX_DECOMPILER("JADX Decompiler", "jadx", new JADXDecompiler()),
+    BYTECODE_DISASSEMBLER(new BytecodeDisassembler()),          //bytecode disassembler
+    HEXCODE_VIEWER(null),                                       //hexcode viewer
 
-    ASM_TEXTIFY_DISASSEMBLER("ASM Disassembler", "asm", new ASMTextifierDisassembler()),
-    ASMIFIER_DECOMPILER("ASMifier Generator", "asmifier", new ASMifierGenerator()),
-    JAVAP_DISASSEMBLER("Javap Disassembler", "javap", new JavapDisassembler());
+    SMALI_DISASSEMBLER(new SmaliDisassembler()),                //bytecode disassembler
+    KRAKATAU_DECOMPILER(new KrakatauDecompiler()),              //java decompiler
+    KRAKATAU_DISASSEMBLER(new KrakatauDisassembler()),          //bytecode disassembler
+    JD_DECOMPILER(new JDGUIDecompiler()),                       //java decompiler
+    JADX_DECOMPILER(new JADXDecompiler()),                      //java decompiler
 
-    private final String decompilerName;
-    private final String decompilerNameProgrammic;
-    private final InternalDecompiler decompiler;
+    ASM_DISASSEMBLER(new ASMDisassembler()),                    //bytecode disassembler
+    ASMIFIER_CODE_GEN(new ASMifierGenerator()),                 //bytecode disassembler / code gen
+    JAVAP_DISASSEMBLER(new JavapDisassembler());                //bytecode disassembler
 
-    Decompiler(String decompilerName, String decompilerNameProgrammic, InternalDecompiler decompiler)
+    private final AbstractDecompiler decompiler;
+
+    Decompiler(AbstractDecompiler decompiler)
     {
-        this.decompilerName = decompilerName;
-        this.decompilerNameProgrammic = decompilerNameProgrammic;
         this.decompiler = decompiler;
     }
 
     public String getDecompilerName()
     {
-        return decompilerName;
+        if(decompiler == null)
+            return "None";
+
+        return getDecompiler().getDecompilerName();
     }
 
-    public String getDecompilerNameProgrammic()
+    /**
+     * Used for the compressed exports (Zip / Jar)
+     */
+    public String getDecompilerNameProgrammatic()
     {
-        return decompilerNameProgrammic;
+        if(decompiler == null)
+            return "";
+
+        return getDecompiler().getDecompilerNameProgrammatic();
     }
 
-    public InternalDecompiler getDecompiler()
+    public AbstractDecompiler getDecompiler()
     {
         return decompiler;
     }

@@ -47,7 +47,8 @@ public class Constants
     //      + You can control the java arguments (more memory & stack)
     //the cons to this are:
     //      + If you could keep it in memory, now you need to write to disk (windows limitations)
-    public static final boolean LAUNCH_DECOMPILERS_IN_NEW_PROCESS = false; //TODO
+    public static final boolean LAUNCH_DECOMPILERS_IN_NEW_PROCESS = false;  //TODO - work in progress
+                                                                            // FernFlower is added
 
     //could be automatic by checking if it's loaded a class named whatever for a library
     //maybe it could be automatic with some maven plugin?
@@ -60,18 +61,21 @@ public class Constants
 
     //version is set via maven
     public static final String VERSION = getVersion(BytecodeViewer.class.getPackage().getImplementationVersion());
+
+    //CHECKSTYLE:OFF
     //dev mode is just a check for running via IDE
     public static boolean DEV_MODE;
+    //CHECKSTYLE:ON
 
     //if true the version checker will prompt and ask how you would like to proceed
     public static final boolean FORCE_VERSION_CHECKER_PROMPT = false;
 
     public static final String FS = System.getProperty("file.separator");
     public static final String NL = System.getProperty("line.separator");
-    public static final String[] SUPPORTED_FILE_EXTENSIONS = ResourceType.supportedBCVExtensionMap.keySet().toArray(new String[0]);
+    public static final String[] SUPPORTED_FILE_EXTENSIONS = ResourceType.SUPPORTED_BCV_EXTENSION_MAP.keySet().toArray(new String[0]);
     public static final int ASM_VERSION = Opcodes.ASM9;
 
-    public static final File BCVDir = resolveBCVRoot();
+    public static final File BCV_DIR = resolveBCVRoot();
     public static final File RT_JAR = new File(System.getProperty("java.home") + FS + "lib" + FS + "rt.jar");
     public static final File JAVA_BINARY = new File(System.getProperty("java.home") + FS + "bin" + FS + "java.exe");
     public static final File JAVA_BINARY_NIX = new File(System.getProperty("java.home") + FS + "bin" + FS + "java");
@@ -84,6 +88,11 @@ public class Constants
     public static final String LIBS_DIRECTORY = getBCVDirectory() + FS + "libs" + FS;
     public static String krakatauWorkingDirectory = getBCVDirectory() + FS + "krakatau_" + krakatauVersion;
     public static String enjarifyWorkingDirectory = getBCVDirectory() + FS + "enjarify_" + enjarifyVersion;
+
+    //DEV_FLAG_* are used for enabling tooling / systems reserved for development.
+    //As a precaution, all variables in here MUST ensure we are working in DEV_MODE only.
+    //Nothing here is meant for user level production, only development level production.
+    public static final boolean DEV_FLAG_DECOMPILERS_SIMULATED_ERRORS = DEV_MODE && false; //enable true / false to disable
 
     public static final PrintStream ERR = System.err;
     public static final PrintStream OUT = System.out;
@@ -119,18 +128,18 @@ public class Constants
      */
     public static String getBCVDirectory()
     {
-        while (!BCVDir.exists())
-            BCVDir.mkdirs();
+        while (!BCV_DIR.exists())
+            BCV_DIR.mkdirs();
 
         //hides the BCV directory
-        if (isWindows() && !BCVDir.isHidden())
+        if (isWindows() && !BCV_DIR.isHidden())
         {
             new Thread(() ->
             {
                 try
                 {
                     // Hide file by running attrib system command (on Windows)
-                    Process p = new ProcessBuilder("attrib", "+H", BCVDir.getAbsolutePath()).start();
+                    Process p = new ProcessBuilder("attrib", "+H", BCV_DIR.getAbsolutePath()).start();
                 }
                 catch (Exception e)
                 {
@@ -139,7 +148,7 @@ public class Constants
             }, "Hide BCV Dir").start();
         }
 
-        return BCVDir.getAbsolutePath();
+        return BCV_DIR.getAbsolutePath();
     }
 
     /**

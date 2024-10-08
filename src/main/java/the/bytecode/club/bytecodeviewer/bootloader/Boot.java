@@ -59,15 +59,14 @@ public class Boot
     private static final List<String> LIBS_FILE_LIST = new ArrayList<>();
     private static final List<String> URL_LIST = new ArrayList<>();
 
-    public static void boot(String[] args, boolean isCLI) throws Exception
+    public static void boot(String[] args) throws Exception
     {
         bootstrap();
         ILoader<?> loader = findLoader();
 
         screen = new InitialBootScreen();
 
-        if (!isCLI)
-            SwingUtilities.invokeLater(() -> screen.setVisible(true));
+        SwingUtilities.invokeLater(() -> screen.setVisible(true));
 
         create(loader, args.length <= 0 || Boolean.parseBoolean(args[0]));
 
@@ -331,7 +330,8 @@ public class Boot
             while (temp.exists())
                 temp.delete();
 
-            try (InputStream is = BytecodeViewer.class.getClassLoader().getResourceAsStream("Krakatau-" + krakatauVersion + ".zip"); FileOutputStream baos = new FileOutputStream(temp))
+            try (InputStream is = BytecodeViewer.class.getClassLoader().getResourceAsStream("Krakatau-" + krakatauVersion + ".zip");
+                 FileOutputStream baos = new FileOutputStream(temp))
             {
                 int r;
                 byte[] buffer = new byte[8192];
@@ -368,7 +368,8 @@ public class Boot
             while (temp.exists())
                 temp.delete();
 
-            try (InputStream is = BytecodeViewer.class.getClassLoader().getResourceAsStream("enjarify-" + Constants.enjarifyVersion + ".zip"); FileOutputStream baos = new FileOutputStream(temp))
+            try (InputStream is = BytecodeViewer.class.getClassLoader().getResourceAsStream("enjarify-" + Constants.enjarifyVersion + ".zip");
+                 FileOutputStream baos = new FileOutputStream(temp))
             {
                 int r;
                 byte[] buffer = new byte[8192];
@@ -405,7 +406,8 @@ public class Boot
                     setState("Bytecode Viewer Boot Screen - Downloading " + fileName + "...");
                     System.out.println("Downloading " + fileName);
 
-                    try (InputStream is = new URL("https://github.com/Konloch/bytecode-viewer/raw/master/libs/" + fileName).openConnection().getInputStream(); FileOutputStream fos = new FileOutputStream(file))
+                    try (InputStream is = new URL("https://github.com/Konloch/bytecode-viewer/raw/master/libs/" + fileName).openConnection().getInputStream();
+                         FileOutputStream fos = new FileOutputStream(file))
                     {
                         System.out.println("Downloading from " + s);
                         byte[] buffer = new byte[8192];

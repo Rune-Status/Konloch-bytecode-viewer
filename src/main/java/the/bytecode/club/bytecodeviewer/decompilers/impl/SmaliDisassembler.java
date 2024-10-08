@@ -19,12 +19,12 @@
 package the.bytecode.club.bytecodeviewer.decompilers.impl;
 
 import com.googlecode.d2j.smali.BaksmaliCmd;
-import me.konloch.kontainer.io.DiskReader;
+import com.konloch.disklib.DiskReader;
 import org.apache.commons.io.FileUtils;
 import org.objectweb.asm.tree.ClassNode;
 import the.bytecode.club.bytecodeviewer.BytecodeViewer;
 import the.bytecode.club.bytecodeviewer.api.ExceptionUI;
-import the.bytecode.club.bytecodeviewer.decompilers.InternalDecompiler;
+import the.bytecode.club.bytecodeviewer.decompilers.AbstractDecompiler;
 import the.bytecode.club.bytecodeviewer.translation.TranslatedStrings;
 import the.bytecode.club.bytecodeviewer.util.Dex2Jar;
 import the.bytecode.club.bytecodeviewer.util.MiscUtils;
@@ -41,31 +41,33 @@ import static the.bytecode.club.bytecodeviewer.translation.TranslatedStrings.*;
  * @author Konloch
  */
 
-public class SmaliDisassembler extends InternalDecompiler
+public class SmaliDisassembler extends AbstractDecompiler
 {
-    @Override
-    public String decompileClassNode(ClassNode cn, byte[] b)
+    public SmaliDisassembler()
     {
-        String exception = "";
-        String fileStart = TEMP_DIRECTORY + FS + "temp";
+        super("Smali Disassembler", "smali");
+    }
 
-        String start = MiscUtils.getUniqueName(fileStart, ".class");
-
+    @Override
+    public String decompileClassNode(ClassNode cn, byte[] bytes)
+    {
+        final String fileStart = TEMP_DIRECTORY + FS + "temp";
+        final String start = MiscUtils.getUniqueNameBroken(fileStart, ".class");
         final File tempClass = new File(start + ".class");
         final File tempDex = new File(start + ".dex");
         final File tempDexOut = new File(start + "-out");
         final File tempSmali = new File(start + "-smali"); //output directory
 
+        String exception = "";
+
         try (FileOutputStream fos = new FileOutputStream(tempClass))
         {
-            fos.write(b);
+            fos.write(bytes);
         }
         catch (IOException e)
         {
             BytecodeViewer.handleException(e);
         }
-
-        //ZipUtils.zipFile(tempClass, tempZip);
 
         Dex2Jar.saveAsDex(tempClass, tempDex, true);
 
@@ -102,6 +104,7 @@ public class SmaliDisassembler extends InternalDecompiler
         while (!found)
         {
             File f = Objects.requireNonNull(current.listFiles())[0];
+
             if (f.isDirectory())
                 current = f;
             else
@@ -109,11 +112,10 @@ public class SmaliDisassembler extends InternalDecompiler
                 outputSmali = f;
                 found = true;
             }
-
         }
         try
         {
-            return DiskReader.loadAsString(outputSmali.getAbsolutePath());
+            return DiskReader.readString(outputSmali.getAbsolutePath());
         }
         catch (Exception e)
         {
@@ -124,7 +126,8 @@ public class SmaliDisassembler extends InternalDecompiler
             exception += ExceptionUI.SEND_STACKTRACE_TO_NL + sw;
         }
 
-        return SMALI + " " + DISASSEMBLER + " " + ERROR + "! " + ExceptionUI.SEND_STACKTRACE_TO + NL + NL + TranslatedStrings.SUGGESTED_FIX_DECOMPILER_ERROR + NL + NL + exception;
+        return SMALI + " " + DISASSEMBLER + " " + ERROR + "! " + ExceptionUI.SEND_STACKTRACE_TO + NL + NL
+            + TranslatedStrings.SUGGESTED_FIX_DECOMPILER_ERROR + NL + NL + exception;
     }
 
     @Override

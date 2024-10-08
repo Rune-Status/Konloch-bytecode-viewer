@@ -16,6 +16,11 @@
 -->
 
 <module name="Checker">
+
+  <module name="SuppressionFilter">
+    <property name="file" value="checkstyle_suppression.xml" />
+  </module>
+
   <property name="severity" value="error"/>
   <property name="fileExtensions" value="java, properties, xml"/>
 
@@ -64,6 +69,9 @@
       <property name="option" value="TEXT"/>
       <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
     </module>
+
+    <!-- Suppression via comments -->
+    <module name="SuppressionCommentFilter"/>
 
     <!-- No unused imports -->
     <module name="UnusedImports"/>

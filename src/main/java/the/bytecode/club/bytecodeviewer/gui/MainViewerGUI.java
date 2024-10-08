@@ -39,6 +39,7 @@ import the.bytecode.club.bytecodeviewer.obfuscators.rename.RenameMethods;
 import the.bytecode.club.bytecodeviewer.plugin.PluginManager;
 import the.bytecode.club.bytecodeviewer.plugin.PluginTemplate;
 import the.bytecode.club.bytecodeviewer.plugin.preinstalled.*;
+import the.bytecode.club.bytecodeviewer.plugin.strategies.JavascriptPluginLaunchStrategy;
 import the.bytecode.club.bytecodeviewer.resources.ExternalResources;
 import the.bytecode.club.bytecodeviewer.resources.IconResources;
 import the.bytecode.club.bytecodeviewer.resources.ResourceContainer;
@@ -60,6 +61,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static the.bytecode.club.bytecodeviewer.Configuration.useNewSettingsDialog;
 import static the.bytecode.club.bytecodeviewer.Constants.VERSION;
@@ -676,7 +679,10 @@ public class MainViewerGUI extends JFrame
         pluginsMainMenu.add(recentPluginsSecondaryMenu);
         pluginsMainMenu.add(new JSeparator());
         pluginsMainMenu.add(newJavaPlugin);
-        pluginsMainMenu.add(newJavascriptPlugin);
+
+        if(JavascriptPluginLaunchStrategy.IS_JS_ENGINE_IN_CLASSPATH)
+            pluginsMainMenu.add(newJavascriptPlugin);
+
         pluginsMainMenu.add(new JSeparator()); //android specific plugins first
         pluginsMainMenu.add(viewAPKAndroidPermissions);
         pluginsMainMenu.add(new JSeparator());
@@ -831,6 +837,10 @@ public class MainViewerGUI extends JFrame
     public void calledAfterLoad()
     {
         deleteForeignOutdatedLibs.setSelected(Configuration.deleteForeignLibraries);
+
+        //preload the jFileChooser to fix https://stackoverflow.com/a/59165208
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(FileChooser.SINGLETON);
     }
 
     public int getFontSize()

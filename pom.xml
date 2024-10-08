@@ -51,6 +51,10 @@
         <treelayout.version>1.0.3</treelayout.version>
         <webp-imageio.version>a8f700b</webp-imageio.version>
         <xpp3.version>1.1.4c</xpp3.version>
+        <java-parser.version>3.26.2</java-parser.version>
+        <taskmanager.version>1.0.1</taskmanager.version>
+        <google-java-format.version>1.7</google-java-format.version> <!-- Newer versions require Java 11+ -->
+        <disk-lib.version>1.2.0</disk-lib.version>
     </properties>
 
     <repositories>
@@ -375,12 +379,27 @@
         <dependency>
             <groupId>com.github.javaparser</groupId>
             <artifactId>javaparser-core</artifactId>
-            <version>3.26.1</version>
+            <version>${java-parser.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.javaparser</groupId>
             <artifactId>javaparser-symbol-solver-core</artifactId>
-            <version>3.26.1</version>
+            <version>${java-parser.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.konloch</groupId>
+            <artifactId>TaskManager</artifactId>
+            <version>${taskmanager.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.googlejavaformat</groupId>
+            <artifactId>google-java-format</artifactId>
+            <version>${google-java-format.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.konloch</groupId>
+            <artifactId>DiskLib</artifactId>
+            <version>${disk-lib.version}</version>
         </dependency>
 
         <!-- TODO Re-add for Graal.JS support -->
@@ -475,8 +494,7 @@
                         </filter>
                     </filters>
                     <transformers>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <mainClass>the.bytecode.club.bytecodeviewer.BytecodeViewer</mainClass>
                             <manifestEntries>
                                 <Implementation-Version>${project.version}</Implementation-Version>
@@ -484,8 +502,7 @@
                                 <X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
                             </manifestEntries>
                         </transformer>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                     </transformers>
                 </configuration>
             </plugin>

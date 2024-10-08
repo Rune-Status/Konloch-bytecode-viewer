@@ -44,9 +44,12 @@ public class GoToAction extends AbstractAction
 
         container.fieldMembers.values().forEach(fields -> fields.forEach(field ->
         {
-            if (field.line == line && field.columnStart - 1 <= column && field.columnEnd >= column)
+            if (field.line == line
+                && field.columnStart - 1 <= column
+                && field.columnEnd >= column)
             {
                 Element root = textArea.getDocument().getDefaultRootElement();
+
                 // Open the class that is associated with the field's owner.
                 if (!field.owner.equals(container.getName()))
                 {
@@ -90,6 +93,7 @@ public class GoToAction extends AbstractAction
             if (localMember.line == line && localMember.columnStart - 1 <= column && localMember.columnEnd >= column)
             {
                 Element root = textArea.getDocument().getDefaultRootElement();
+
                 if (localMember.decRef.equals("declaration"))
                 {
                     int startOffset = root.getElement(localMember.line - 1).getStartOffset() + (localMember.columnStart - 1);
@@ -115,6 +119,7 @@ public class GoToAction extends AbstractAction
             if (method.line == line && method.columnStart - 1 <= column && method.columnEnd >= column)
             {
                 Element root = textArea.getDocument().getDefaultRootElement();
+
                 if (method.decRef.equalsIgnoreCase("declaration"))
                 {
                     int startOffset = root.getElement(method.line - 1).getStartOffset() + (method.columnStart - 1);
@@ -122,7 +127,7 @@ public class GoToAction extends AbstractAction
                 }
                 else
                 {
-                    methods.stream().filter(classMethodLocation -> classMethodLocation.owner.equals(method.owner)).forEach(classMethodLocation ->
+                    methods.stream().filter(classMethodLocation -> classMethodLocation.signature.equals(method.signature)).forEach(classMethodLocation ->
                     {
                         if (classMethodLocation.decRef.equalsIgnoreCase("declaration"))
                         {
@@ -130,7 +135,6 @@ public class GoToAction extends AbstractAction
                             textArea.setCaretPosition(startOffset);
                         }
                     });
-
 
                     open(textArea, false, false, true);
                 }
@@ -144,6 +148,7 @@ public class GoToAction extends AbstractAction
             {
                 name = clazz.owner;
                 Element root = textArea.getDocument().getDefaultRootElement();
+
                 if (clazz.type.equals("declaration"))
                 {
                     int startOffset = root.getElement(clazz.line - 1).getStartOffset() + (clazz.columnStart - 1);
@@ -173,6 +178,7 @@ public class GoToAction extends AbstractAction
             return null;
 
         ResourceContainer resourceContainer = BytecodeViewer.getFileContainer(container.getParentContainer());
+
         if (resourceContainer == null)
             return null;
 
@@ -188,6 +194,7 @@ public class GoToAction extends AbstractAction
         {
             ClassMethodLocation classMethodLocation = container.getMethodLocationsFor(lexeme).get(0);
             ClassReferenceLocation classReferenceLocation = null;
+
             try
             {
                 classReferenceLocation = container.getClassReferenceLocationsFor(classMethodLocation.owner).get(0);
@@ -200,10 +207,14 @@ public class GoToAction extends AbstractAction
                 return null;
 
             String packagePath = classReferenceLocation.packagePath;
+
             if (packagePath.startsWith("java") || packagePath.startsWith("javax") || packagePath.startsWith("com.sun"))
                 return null;
 
-            String resourceName = packagePath + "/" + classMethodLocation.owner;
+            String resourceName = classMethodLocation.owner;
+            if (!packagePath.isEmpty())
+                resourceName = packagePath + "/" + classMethodLocation.owner;
+
             if (resourceContainer.resourceClasses.containsKey(resourceName))
             {
                 BytecodeViewer.viewer.workPane.addClassResource(resourceContainer, resourceName + ".class");
@@ -216,10 +227,16 @@ public class GoToAction extends AbstractAction
         {
             ClassReferenceLocation classReferenceLocation = container.getClassReferenceLocationsFor(lexeme).get(0);
             String packagePath = classReferenceLocation.packagePath;
+
             if (packagePath.startsWith("java") || packagePath.startsWith("javax") || packagePath.startsWith("com.sun"))
                 return null;
 
-            String resourceName = packagePath + "/" + lexeme;
+            String resourceName = lexeme;
+            if (!packagePath.isEmpty())
+            {
+                resourceName = packagePath + "/" + lexeme;
+            }
+
             if (resourceContainer.resourceClasses.containsKey(resourceName))
             {
                 BytecodeViewer.viewer.workPane.addClassResource(resourceContainer, resourceName + ".class");
@@ -240,9 +257,11 @@ public class GoToAction extends AbstractAction
             token = TokenUtil.getToken(textArea, token);
             String lexeme = token.getLexeme();
             ClassFileContainer classFileContainer;
+
             if (isClass)
             {
                 classFileContainer = openClass(lexeme, false, false);
+
                 if (classFileContainer == null)
                     return;
 
@@ -253,9 +272,7 @@ public class GoToAction extends AbstractAction
                         classReference.forEach(classReferenceLocation ->
                         {
                             if (classReferenceLocation.type.equals("declaration"))
-                            {
                                 moveCursor(classReferenceLocation.line, classReferenceLocation.columnStart);
-                            }
                         });
                     }
                 });
@@ -273,9 +290,7 @@ public class GoToAction extends AbstractAction
                         fields.forEach(classFieldLocation ->
                         {
                             if (classFieldLocation.type.equals("declaration"))
-                            {
                                 moveCursor(classFieldLocation.line, classFieldLocation.columnStart);
-                            }
                         });
                     }
                 });
@@ -283,6 +298,7 @@ public class GoToAction extends AbstractAction
             else if (isMethod)
             {
                 classFileContainer = openClass(lexeme, false, true);
+
                 if (classFileContainer == null)
                     return;
 
@@ -293,14 +309,13 @@ public class GoToAction extends AbstractAction
                         methods.forEach(method ->
                         {
                             if (method.decRef.equalsIgnoreCase("declaration"))
-                            {
                                 moveCursor(method.line, method.columnStart);
-                            }
                         });
                     }
                 });
             }
         }, "Open Class");
+
         thread.start();
     }
 
@@ -347,11 +362,13 @@ public class GoToAction extends AbstractAction
                 Element root = panel.textArea.getDocument().getDefaultRootElement();
                 int startOffset = root.getElement(line - 1).getStartOffset() + (columnStart - 1);
                 panel.textArea.setCaretPosition(startOffset);
+
                 for (CaretListener caretListener : panel.textArea.getCaretListeners())
                 {
                     if (caretListener instanceof BytecodeViewPanelUpdater.MarkerCaretListener)
                     {
                         BytecodeViewPanelUpdater.MarkerCaretListener markerCaretListener = (BytecodeViewPanelUpdater.MarkerCaretListener) caretListener;
+
                         markerCaretListener.caretUpdate(new CaretEvent(panel.textArea)
                         {
                             @Override

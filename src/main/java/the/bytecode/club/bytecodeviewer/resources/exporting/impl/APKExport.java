@@ -31,6 +31,7 @@ import the.bytecode.club.bytecodeviewer.util.MiscUtils;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -72,7 +73,8 @@ public class APKExport implements Exporter
             //if theres only one file in the container don't bother asking
             if (validContainers.size() >= 2)
             {
-                MultipleChoiceDialog dialog = new MultipleChoiceDialog("Bytecode Viewer - Select APK", "Which file would you like to export as an APK?", validContainersNames.toArray(new String[0]));
+                MultipleChoiceDialog dialog = new MultipleChoiceDialog("Bytecode Viewer - Select APK",
+                    "Which file would you like to export as an APK?", validContainersNames.toArray(new String[0]));
 
                 //TODO may be off by one
                 container = (ResourceContainer) containers.stream().skip(dialog.promptChoice());
@@ -80,7 +82,8 @@ public class APKExport implements Exporter
         }
         else
         {
-            BytecodeViewer.showMessage("You can only export as APK from a valid APK file. Make sure Settings>Decode Resources is ticked on." + "\n\nTip: Try exporting as DEX, it doesn't rely on decoded APK resources");
+            BytecodeViewer.showMessage("You can only export as APK from a valid APK file. Make sure Settings>Decode Resources is ticked on."
+                + "\n\nTip: Try exporting as DEX, it doesn't rely on decoded APK resources");
             return;
         }
 
@@ -88,37 +91,56 @@ public class APKExport implements Exporter
 
         Thread exportThread = new Thread(() ->
         {
-            if (!BytecodeViewer.autoCompileSuccessful())
-                return;
-
-            JFileChooser fc = new FileChooser(Configuration.getLastSaveDirectory(), "Select APK Export", "Android APK", "apk");
-
-            int returnVal = fc.showSaveDialog(BytecodeViewer.viewer);
-            if (returnVal == JFileChooser.APPROVE_OPTION)
+            try
             {
-                Configuration.setLastSaveDirectory(fc.getSelectedFile());
-
-                final File file = MiscUtils.autoAppendFileExtension(".apk", fc.getSelectedFile());
-
-                if (!DialogUtils.canOverwriteFile(file))
+                if (!BytecodeViewer.autoCompileSuccessful())
                     return;
 
-                Thread saveThread = new Thread(() ->
-                {
-                    BytecodeViewer.updateBusyStatus(true);
-                    final String input = TEMP_DIRECTORY + FS + MiscUtils.getRandomizedName() + ".jar";
-                    JarUtils.saveAsJar(BytecodeViewer.getLoadedClasses(), input);
+                JFileChooser fc = FileChooser.create(Configuration.getLastSaveDirectory(), "Select APK Export", "Android APK", "apk");
 
-                    Thread buildAPKThread = new Thread(() ->
+                int returnVal = fc.showSaveDialog(BytecodeViewer.viewer);
+                if (returnVal == JFileChooser.APPROVE_OPTION)
+                {
+                    Configuration.setLastSaveDirectory(fc.getSelectedFile());
+
+                    final File file = MiscUtils.autoAppendFileExtension(".apk", fc.getSelectedFile());
+
+                    if (!DialogUtils.canOverwriteFile(file))
+                        return;
+
+                    Thread saveThread = new Thread(() ->
                     {
-                        APKTool.buildAPK(new File(input), file, finalContainer);
-                        BytecodeViewer.updateBusyStatus(false);
-                    }, "Process APK");
-                    buildAPKThread.start();
-                }, "Jar Export");
-                saveThread.start();
+                        try
+                        {
+                            BytecodeViewer.updateBusyStatus(true);
+                            final String input = TEMP_DIRECTORY + FS + MiscUtils.getRandomizedName() + ".jar";
+
+                            JarUtils.saveAsJar(BytecodeViewer.getLoadedClasses(), input);
+
+                            Thread buildAPKThread = new Thread(() ->
+                            {
+                                APKTool.buildAPK(new File(input), file, finalContainer);
+                                BytecodeViewer.updateBusyStatus(false);
+                            }, "Process APK");
+
+                            buildAPKThread.start();
+                        }
+                        catch (IOException ex)
+                        {
+                            BytecodeViewer.updateBusyStatus(false);
+                            BytecodeViewer.handleException(ex);
+                        }
+                    }, "Jar Export");
+
+                    saveThread.start();
+                }
+            }
+            catch (Exception e)
+            {
+                BytecodeViewer.handleException(e);
             }
         }, "Resource Export");
+
         exportThread.start();
     }
 }

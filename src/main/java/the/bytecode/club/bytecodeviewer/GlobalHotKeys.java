@@ -27,6 +27,7 @@ import the.bytecode.club.bytecodeviewer.util.MiscUtils;
 import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Whenever a key is pressed on the swing UI it should get logged here
@@ -103,27 +104,46 @@ public class GlobalHotKeys
                 if (!BytecodeViewer.autoCompileSuccessful())
                     return;
 
-                JFileChooser fc = new FileChooser(Configuration.getLastSaveDirectory(), "Select Zip Export", "Zip Archives", "zip");
-
-                int returnVal = fc.showSaveDialog(BytecodeViewer.viewer);
-                if (returnVal == JFileChooser.APPROVE_OPTION)
+                try
                 {
-                    Configuration.setLastSaveDirectory(fc.getSelectedFile());
+                    JFileChooser fc = FileChooser.create(Configuration.getLastSaveDirectory(), "Select Zip Export", "Zip Archives", "zip");
 
-                    File file = MiscUtils.autoAppendFileExtension(".zip", fc.getSelectedFile());
+                    int returnVal = fc.showSaveDialog(BytecodeViewer.viewer);
 
-                    if (!DialogUtils.canOverwriteFile(file))
-                        return;
-
-                    BytecodeViewer.updateBusyStatus(true);
-                    Thread jarExport = new Thread(() ->
+                    if (returnVal == JFileChooser.APPROVE_OPTION)
                     {
-                        JarUtils.saveAsJar(BytecodeViewer.getLoadedClasses(), file.getAbsolutePath());
-                        BytecodeViewer.updateBusyStatus(false);
-                    }, "Jar Export");
-                    jarExport.start();
+                        Configuration.setLastSaveDirectory(fc.getSelectedFile());
+
+                        File file = MiscUtils.autoAppendFileExtension(".zip", fc.getSelectedFile());
+
+                        if (!DialogUtils.canOverwriteFile(file))
+                            return;
+
+                        BytecodeViewer.updateBusyStatus(true);
+                        Thread jarExport = new Thread(() ->
+                        {
+                            try
+                            {
+                                JarUtils.saveAsJar(BytecodeViewer.getLoadedClasses(), file.getAbsolutePath());
+                            }
+                            catch (IOException ex)
+                            {
+                                BytecodeViewer.handleException(ex);
+                            }
+                            finally
+                            {
+                                BytecodeViewer.updateBusyStatus(false);
+                            }
+                        }, "Jar Export");
+                        jarExport.start();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    BytecodeViewer.handleException(ex);
                 }
             }, "Resource Export");
+
             resourceExport.start();
         }
 

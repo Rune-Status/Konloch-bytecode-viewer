@@ -56,8 +56,10 @@ public class MiscUtils
     public static String randomString(int len)
     {
         StringBuilder sb = new StringBuilder(len);
+
         for (int i = 0; i < len; i++)
             sb.append(AB.charAt(RND.nextInt(AB.length())));
+
         return sb.toString();
     }
 
@@ -70,9 +72,11 @@ public class MiscUtils
     {
         boolean generated = false;
         String name = "";
+
         while (!generated)
         {
             String randomizedName = MiscUtils.randomString(25);
+
             if (!CREATED_RANDOMIZED_NAMES.contains(randomizedName))
             {
                 CREATED_RANDOMIZED_NAMES.add(randomizedName);
@@ -80,6 +84,7 @@ public class MiscUtils
                 generated = true;
             }
         }
+
         return name;
     }
 
@@ -87,7 +92,8 @@ public class MiscUtils
     {
         //Read out dir output
         try (InputStream is = process.getInputStream();
-             InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr))
+             InputStreamReader isr = new InputStreamReader(is);
+             BufferedReader br = new BufferedReader(isr))
         {
             String line;
             while ((line = br.readLine()) != null)
@@ -117,57 +123,95 @@ public class MiscUtils
     public static String randomStringNum(int len)
     {
         StringBuilder sb = new StringBuilder(len);
+
         for (int i = 0; i < len; i++)
             sb.append(AN.charAt(RND.nextInt(AN.length())));
+
         return sb.toString();
     }
 
     /**
      * Checks the file system to ensure it's a unique name
      *
-     * @param start directory it'll be in
-     * @param ext   the file extension it'll use
+     * @param stringStart directory it'll be in
+     * @param fileExtension   the file extension it'll use
      * @return the unique name
      */
-    public static String getUniqueName(String start, String ext)
+    public static String getUniqueName(String stringStart, String fileExtension)
     {
-        String s = null;
-        boolean b = true;
-        File f;
-        String m;
-        while (b)
+        String uniqueName = null;
+        boolean searching = true;
+        File tempFile;
+        String randomString;
+
+        while (searching)
         {
-            m = MiscUtils.randomString(32);
-            f = new File(start + m + ext);
-            if (!f.exists())
+            randomString = MiscUtils.randomString(32);
+            uniqueName = stringStart + randomString + fileExtension;
+            tempFile = new File(stringStart + randomString + fileExtension);
+
+            if (!tempFile.exists())
+                searching = false;
+        }
+
+        return uniqueName;
+    }
+
+    /**
+     * Checks the file system to ensure it's a unique name
+     *
+     * @param stringStart directory it'll be in
+     * @param fileExtension   the file extension it'll use
+     * @return the unique name
+     */
+    //TODO anything using this should be updated:
+    // The + ".class" needs to be removed
+    @Deprecated
+    public static String getUniqueNameBroken(String stringStart, String fileExtension)
+    {
+        String uniqueName = null;
+        boolean searching = true;
+        File tempFile;
+        String randomString;
+
+        while (searching)
+        {
+            randomString = MiscUtils.randomString(32);
+            tempFile = new File(stringStart + randomString + fileExtension);
+
+            if (!tempFile.exists())
             {
-                s = start + m;
-                b = false;
+                uniqueName = stringStart + randomString;
+                searching = false;
             }
         }
-        return s;
+
+        return uniqueName;
     }
 
     /**
      * Checks the file system to ensure it's a unique number
      *
-     * @param start directory it'll be in
-     * @param ext   the file extension it'll use
+     * @param stringStart directory it'll be in
+     * @param fileExtension   the file extension it'll use
      * @return the unique number
      */
-    public static int getClassNumber(String start, String ext)
+    public static int getClassNumber(String stringStart, String fileExtension)
     {
-        boolean b = true;
-        int i = 0;
-        while (b)
+        boolean searching = true;
+        int index = 0;
+
+        while (searching)
         {
-            File tempF = new File(start + i + ext);
+            File tempF = new File(stringStart + index + fileExtension);
+
             if (!tempF.exists())
-                b = false;
+                searching = false;
             else
-                i++;
+                index++;
         }
-        return i;
+
+        return index;
     }
 
     public static File autoAppendFileExtension(String extension, File file)
@@ -186,17 +230,21 @@ public class MiscUtils
     public static String append(File file, String extension)
     {
         String path = file.getAbsolutePath();
+
         if (!path.endsWith(extension))
             path += extension;
+
         return path;
     }
 
     public static int fileContainersHash(List<ResourceContainer> resourceContainers)
     {
         StringBuilder block = new StringBuilder();
+
         for (ResourceContainer container : resourceContainers)
         {
             block.append(container.name);
+
             for (ClassNode node : container.resourceClasses.values())
             {
                 block.append(node.name);
@@ -246,6 +294,7 @@ public class MiscUtils
     public static void deduplicateAndTrim(List<String> list, int maxLength)
     {
         List<String> temporaryList = new ArrayList<>();
+
         for (String s : list)
             if (!s.isEmpty() && !temporaryList.contains(s))
                 temporaryList.add(s);
@@ -261,17 +310,19 @@ public class MiscUtils
      * Returns whether the bytes most likely represent binary data.
      * Based on https://stackoverflow.com/a/13533390/5894824
      */
-    public static boolean guessIfBinary(byte[] data)
+    public static boolean guessIfBinary(byte[] bytes)
     {
         double ascii = 0;
         double other = 0;
-        for (byte b : data)
+
+        for (byte b : bytes)
         {
             if (b == 0x09 || b == 0x0A || b == 0x0C || b == 0x0D || (b >= 0x20 && b <= 0x7E))
                 ascii++;
             else
                 other++;
         }
+
         return other != 0 && other / (ascii + other) > 0.25;
     }
 
@@ -345,9 +396,9 @@ public class MiscUtils
     {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream())
         {
-
             byte[] buffer = new byte[1024];
             int a;
+
             while ((a = is.read(buffer)) != -1)
                 baos.write(buffer, 0, a);
 
@@ -359,9 +410,11 @@ public class MiscUtils
     {
         if (file == null)
             return new File[0];
+
         File[] list = file.listFiles();
         if (list != null)
             return list;
+
         return new File[0];
     }
 

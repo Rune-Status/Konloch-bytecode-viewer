@@ -1,17 +1,16 @@
 package the.bytecode.club.bytecodeviewer.resources.classcontainer;
 
-import com.github.javaparser.ParseProblemException;
-import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.*;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.resolution.TypeSolver;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import the.bytecode.club.bytecodeviewer.decompilers.Decompiler;
 import the.bytecode.club.bytecodeviewer.resources.ResourceContainer;
 import the.bytecode.club.bytecodeviewer.resources.classcontainer.locations.*;
-import the.bytecode.club.bytecodeviewer.resources.classcontainer.parser.MyVoidVisitor;
+import the.bytecode.club.bytecodeviewer.resources.classcontainer.parser.visitors.MyVoidVisitor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,29 +50,55 @@ public class ClassFileContainer
     /**
      * Parse the class content with JavaParser.
      */
-    public void parse()
+    public boolean parse()
     {
         try
         {
-            TypeSolver typeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(false), new JarTypeSolver(path));
-            StaticJavaParser.getParserConfiguration().setSymbolResolver(new JavaSymbolSolver(typeSolver));
-            CompilationUnit compilationUnit = StaticJavaParser.parse(this.content);
-            compilationUnit.accept(new MyVoidVisitor(this, compilationUnit), null);
-        }
-        catch (java.lang.ClassCastException | UnsolvedSymbolException | ParseProblemException e)
-        {
-            System.err.println("Parsing error!");
-            e.printStackTrace();
+            if (shouldParse())
+            {
+                TypeSolver typeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(true), new JarTypeSolver(path));
+                JavaParser parser = new JavaParser();
+                parser.getParserConfiguration().setSymbolResolver(new JavaSymbolSolver(typeSolver));
+                ParseResult<CompilationUnit> parse = parser.parse(this.content);
+                if (!parse.isSuccessful())
+                {
+                    System.err.println("Failed to parse: " + this.getName());
+                    parse.getProblems().forEach(System.out::println);
+                    return false;
+                }
+
+                CompilationUnit compilationUnit = parse.getResult().orElse(null);
+                if (compilationUnit == null)
+                    return false;
+
+                compilationUnit.accept(new MyVoidVisitor(this, compilationUnit), null);
+                return true;
+            }
         }
         catch (IOException e)
         {
             throw new RuntimeException(e);
         }
+
+        return false;
+    }
+
+    public boolean shouldParse()
+    {
+        return !getDecompiler().equals(Decompiler.BYTECODE_DISASSEMBLER.getDecompilerName())
+            && !getDecompiler().equals(Decompiler.KRAKATAU_DISASSEMBLER.getDecompilerName())
+            && !getDecompiler().equals(Decompiler.JAVAP_DISASSEMBLER.getDecompilerName())
+            && !getDecompiler().equals(Decompiler.SMALI_DISASSEMBLER.getDecompilerName())
+            && !getDecompiler().equals(Decompiler.ASM_DISASSEMBLER.getDecompilerName())
+            && !getDecompiler().equals(Decompiler.ASMIFIER_CODE_GEN.getDecompilerName());
     }
 
     public String getName()
     {
-        return this.className.substring(this.className.lastIndexOf('/') + 1, this.className.lastIndexOf('.'));
+        if (this.className.contains("/"))
+            return this.className.substring(this.className.lastIndexOf('/') + 1, this.className.lastIndexOf('.'));
+        else
+            return this.className.substring(0, this.className.lastIndexOf('.'));
     }
 
     public String getDecompiler()

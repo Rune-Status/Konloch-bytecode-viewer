@@ -39,10 +39,12 @@ public class RenameClasses extends JavaObfuscator
     {
         if (Configuration.runningObfuscation)
         {
-            BytecodeViewer.showMessage("You're currently running an obfuscation task, wait for this to finish" + ".");
+            BytecodeViewer.showMessage("You're currently running an obfuscation task, wait for this to finish.");
             return;
         }
+
         new RenameClasses().start();
+
         BytecodeViewer.viewer.workPane.refreshClass.doClick();
         BytecodeViewer.viewer.resourcePane.tree.updateUI();
     }
@@ -61,7 +63,8 @@ public class RenameClasses extends JavaObfuscator
             for (MethodNode o : c.methods)
             {
                 /* As we dont want to rename any  main-classes */
-                if (o.name.equals("main") && o.desc.equals("([Ljava/lang/String;)V") || o.name.equals("init") && c.superName.equals("java/applet/Applet"))
+                if (o.name.equals("main") && o.desc.equals("([Ljava/lang/String;)V")
+                    || o.name.equals("init") && c.superName.equals("java/applet/Applet"))
                     continue classLoop;
 
                 /* As we dont want to rename native dll methods */
@@ -72,9 +75,6 @@ public class RenameClasses extends JavaObfuscator
             String newName = generateUniqueName(stringLength);
 
             BytecodeViewer.refactorer.getHooks().addClass(new MappingData(c.name, newName));
-
-			/*ASMUtil_OLD.renameClassNode(c.name, newName);
-			c.name = newName;*/
         }
 
         System.out.println("Obfuscated class names.");

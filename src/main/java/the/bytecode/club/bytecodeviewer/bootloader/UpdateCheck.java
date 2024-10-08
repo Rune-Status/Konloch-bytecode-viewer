@@ -32,6 +32,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
+import java.util.concurrent.ExecutionException;
 
 import static the.bytecode.club.bytecodeviewer.Constants.VERSION;
 import static the.bytecode.club.bytecodeviewer.Constants.NL;
@@ -118,7 +119,8 @@ public class UpdateCheck implements Runnable
                 if (Desktop.isDesktopSupported())
                     Desktop.getDesktop().browse(new URI("https://github.com/Konloch/bytecode-viewer/releases"));
                 else
-                    BytecodeViewer.showMessage("Cannot open the page, please manually type it." + NL + "https://github.com/Konloch/bytecode-viewer/releases");
+                    BytecodeViewer.showMessage("Cannot open the page, please manually type it."
+                        + NL + "https://github.com/Konloch/bytecode-viewer/releases");
             }
             else if (result == 1)
             {
@@ -144,9 +146,9 @@ public class UpdateCheck implements Runnable
         }
     }
 
-    public static File promptFileSave(String description, String extension) throws IOException
+    public static File promptFileSave(String description, String extension) throws IOException, ExecutionException, InterruptedException
     {
-        JFileChooser fc = new FileChooser(new File("./").getCanonicalFile(), "Select Save File", description, extension);
+        JFileChooser fc = FileChooser.create(new File("./").getCanonicalFile(), "Select Save File", description, extension);
 
         int returnVal = fc.showSaveDialog(BytecodeViewer.viewer);
         File file = null;
@@ -176,7 +178,7 @@ public class UpdateCheck implements Runnable
     }
 
     //used to download all released versions of BCV
-	/*public static void main(String[] args)
+    /*public static void main(String[] args)
     {
         BytecodeViewer.viewer = new MainViewerGUI();
         for(String version : BCV_VERSIONS)
@@ -234,7 +236,8 @@ public class UpdateCheck implements Runnable
     private static void download(String url, File saveTo, Runnable onFinish) throws Exception
     {
         BCV.log("Downloading from: " + url);
-        BytecodeViewer.showMessage("Downloading the jar in the background, when it's finished you will be alerted with another message box." + NL + NL + "Expect this to take several minutes.");
+        BytecodeViewer.showMessage("Downloading the jar in the background, when it's finished you will be alerted with another message box."
+            + NL + NL + "Expect this to take several minutes.");
 
         try (InputStream is = new URL(url).openConnection().getInputStream(); FileOutputStream fos = new FileOutputStream(saveTo))
         {
